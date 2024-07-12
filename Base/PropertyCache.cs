@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -6,7 +7,7 @@ namespace EFCore.Extension.Base
 {
     internal class PropertyCache
     {
-        internal static readonly Dictionary<string, List<PropertyModel>> PropertyInfo = new Dictionary<string, List<PropertyModel>>();
+        internal static readonly ConcurrentDictionary<string, List<PropertyModel>> PropertyInfo = new ConcurrentDictionary<string, List<PropertyModel>>();
 
         public static List<PropertyModel> GetPropertyInfo<T>()
         {
@@ -27,7 +28,7 @@ namespace EFCore.Extension.Base
                         list.Add(temp);
                     }
                 });
-                PropertyInfo.Add(key, list);
+                PropertyInfo.TryAdd(key, list);
             }
 
             return list;

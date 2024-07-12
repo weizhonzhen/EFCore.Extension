@@ -1,6 +1,6 @@
-﻿using EFCore.Extension.Model;
+﻿using EFCore.Extension.Context;
+using EFCore.Extension.Model;
 using FastUntility.Core.Page;
-using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Data.Common;
 
@@ -14,6 +14,8 @@ namespace EFCore.Extension.Base
             using (var dr = ToDataReader(cmd, sql, IsProcedure))
             {
                 dt.Load(dr);
+                dr.Close();
+                dr.Dispose();
                 return dt;
             }
         }
