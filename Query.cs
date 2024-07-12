@@ -1,11 +1,10 @@
 ﻿using EFCore.Extension.Aop;
 using EFCore.Extension.Base;
+using EFCore.Extension.Context;
 using EFCore.Extension.Model;
 using FastUntility.Core;
 using FastUntility.Core.Base;
 using FastUntility.Core.Page;
-using Microsoft.EntityFrameworkCore;
-using NPOI.SS.Formula.Functions;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -17,26 +16,25 @@ namespace EFCore.Extension
     {
         internal DataQuery Data { get; set; } = new DataQuery();
 
-        public override int ToCount()
+        public override int ToCount(DataContext db = null)
         {
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                db.cmd.CommandText = $"select count(0) from ({Data.sql}) a";
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+                var dt = BaseExecute.ToDataTable(db.cmd, db.cmd.CommandText);
+                if (dt.Rows.Count > 0)
                 {
-                    db.cmd.CommandText = $"select count(0) from ({Data.sql}) a";                
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-                    var dt = BaseExecute.ToDataTable(db.cmd, db.cmd.CommandText);
-                    if (dt.Rows.Count > 0)
-                    {
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, dt.Rows[0][0].ToString().ToInt(0));
-                        return dt.Rows[0][0].ToString().ToInt(0);
-                    }
-                    else
-                    {
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, 0);
-                        return 0;
-                    }
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, dt.Rows[0][0].ToString().ToInt(0));
+                    return dt.Rows[0][0].ToString().ToInt(0);
+                }
+                else
+                {
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, 0);
+                    return 0;
                 }
             }
             catch (Exception ex)
@@ -47,21 +45,20 @@ namespace EFCore.Extension
             }
         }
 
-        public override Dictionary<string, object> ToDic()
+        public override Dictionary<string, object> ToDic(DataContext db = null)
         {
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                BaseExecute.SetCommandText(1, db, Data);
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+                using (var reader = db.cmd.ExecuteReader())
                 {
-                    BaseExecute.SetCommandText(1, db, Data);
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-                    using (var reader = db.cmd.ExecuteReader())
-                    {
-                        var result = BaseJson.DataReaderToDic(reader, db.config.DbType == DbTypeEnum.Oracle).FirstOrDefault() ?? new Dictionary<string, object>();
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
-                        return result;
-                    }
+                    var result = BaseJson.DataReaderToDic(reader, db.config.DbType == DbTypeEnum.Oracle).FirstOrDefault() ?? new Dictionary<string, object>();
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -72,25 +69,23 @@ namespace EFCore.Extension
             }
         }
 
-        public override List<Dictionary<string, object>> ToDics()
+        public override List<Dictionary<string, object>> ToDics(DataContext db = null)
         {
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                if (Data.Take == 0)
+                    db.cmd.CommandText = Data.sql;
+                else
+                    BaseExecute.SetCommandText(Data.Take, db, Data);
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+                using (var reader = db.cmd.ExecuteReader())
                 {
-                    if (Data.Take == 0)
-                        db.cmd.CommandText = Data.sql;
-                    else
-                        BaseExecute.SetCommandText(Data.Take, db, Data);
-
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-                    using (var reader = db.cmd.ExecuteReader())
-                    {
-                        var result = BaseJson.DataReaderToDic(reader, db.config.DbType == DbTypeEnum.Oracle);
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);                        
-                        return result;
-                    }
+                    var result = BaseJson.DataReaderToDic(reader, db.config.DbType == DbTypeEnum.Oracle);
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -101,21 +96,20 @@ namespace EFCore.Extension
             }
         }
 
-        public override dynamic ToDyn()
+        public override dynamic ToDyn(DataContext db = null)
         {
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                BaseExecute.SetCommandText(1, db, Data);
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+                using (var reader = db.cmd.ExecuteReader())
                 {
-                    BaseExecute.SetCommandText(1, db, Data);
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-                    using (var reader = db.cmd.ExecuteReader())
-                    {
-                       var result = BaseDataReader.ToDyns(reader).FirstOrDefault() ?? new ExpandoObject();
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
-                        return result;
-                    }
+                    var result = BaseDataReader.ToDyns(reader).FirstOrDefault() ?? new ExpandoObject();
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -126,24 +120,23 @@ namespace EFCore.Extension
             }
         }
 
-        public override List<dynamic> ToDyns()
+        public override List<dynamic> ToDyns(DataContext db = null)
         {
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                if (Data.Take == 0)
+                    db.cmd.CommandText = Data.sql;
+                else
+                    BaseExecute.SetCommandText(Data.Take, db, Data);
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+                using (var reader = db.cmd.ExecuteReader())
                 {
-                    if (Data.Take == 0)
-                        db.cmd.CommandText = Data.sql;
-                    else
-                        BaseExecute.SetCommandText(Data.Take, db, Data);
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-                    using (var reader = db.cmd.ExecuteReader())
-                    {
-                        var result = BaseDataReader.ToDyns(reader) ?? new List<dynamic>();
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
-                        return result;
-                    }
+                    var result = BaseDataReader.ToDyns(reader) ?? new List<dynamic>();
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -154,21 +147,20 @@ namespace EFCore.Extension
             }
         }
 
-        public override T ToItem<T>()
+        public override T ToItem<T>(DataContext db = null)
         {
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                BaseExecute.SetCommandText(1, db, Data);
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+                using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
                 {
-                    BaseExecute.SetCommandText(1, db, Data);
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-                    using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
-                    {
-                        var result = BaseDataReader.ToList<T>(dr).FirstOrDefault() ?? new T();
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
-                        return result;
-                    }
+                    var result = BaseDataReader.ToList<T>(dr).FirstOrDefault() ?? new T();
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -179,25 +171,23 @@ namespace EFCore.Extension
             }
         }
 
-        public override List<T> ToList<T>()
+        public override List<T> ToList<T>(DataContext db = null)
         {
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                if (Data.Take == 0)
+                    db.cmd.CommandText = Data.sql;
+                else
+                    BaseExecute.SetCommandText(Data.Take, db, Data);
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+                using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
                 {
-                    if (Data.Take == 0)
-                        db.cmd.CommandText = Data.sql;
-                    else
-                        BaseExecute.SetCommandText(Data.Take, db, Data);
-
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-                    using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
-                    {
-                        var result = BaseDataReader.ToList<T>(dr) ?? new List<T>(); 
-                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
-                        return result;
-                    }
+                    var result = BaseDataReader.ToList<T>(dr) ?? new List<T>();
+                    BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
+                    return result;
                 }
             }
             catch (Exception ex)
@@ -208,42 +198,41 @@ namespace EFCore.Extension
             }
         }
 
-        public override PageResult ToPage(PageModel pModel)
+        public override PageResult ToPage(PageModel pModel, DataContext db = null)
         {
             var result = new PageResult();
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                pModel.StarId = (pModel.PageId - 1) * pModel.PageSize + 1;
+                pModel.EndId = pModel.PageId * pModel.PageSize;
+                pModel.TotalRecord = ToCount(db);
+
+                if (pModel.TotalRecord > 0)
                 {
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    pModel.StarId = (pModel.PageId - 1) * pModel.PageSize + 1;
-                    pModel.EndId = pModel.PageId * pModel.PageSize;
-                    pModel.TotalRecord = ToCount();
-
-                    if (pModel.TotalRecord > 0)
-                    {
-                        if ((pModel.TotalRecord % pModel.PageSize) == 0)
-                            pModel.TotalPage = pModel.TotalRecord / pModel.PageSize;
-                        else
-                            pModel.TotalPage = (pModel.TotalRecord / pModel.PageSize) + 1;
-
-                        if (pModel.PageId > pModel.TotalPage)
-                            pModel.PageId = pModel.TotalPage;
-
-                        BaseExecute.SetCommandText(db, pModel, Data.sql);
-                        BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-
-                        using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
-                        {
-                            result.list = BaseJson.DataReaderToDic(dr, db.config.DbType == DbTypeEnum.Oracle);
-                            BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result.list);
-                        }
-                    }
+                    if ((pModel.TotalRecord % pModel.PageSize) == 0)
+                        pModel.TotalPage = pModel.TotalRecord / pModel.PageSize;
                     else
-                        result.list = new List<Dictionary<string, object>>();
+                        pModel.TotalPage = (pModel.TotalRecord / pModel.PageSize) + 1;
 
-                    result.pModel = pModel;
+                    if (pModel.PageId > pModel.TotalPage)
+                        pModel.PageId = pModel.TotalPage;
+
+                    BaseExecute.SetCommandText(db, pModel, Data.sql);
+                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+
+                    using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
+                    {
+                        result.list = BaseJson.DataReaderToDic(dr, db.config.DbType == DbTypeEnum.Oracle);
+                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result.list);
+                    }
                 }
+                else
+                    result.list = new List<Dictionary<string, object>>();
+
+                result.pModel = pModel;
 
                 return result;
             }
@@ -255,42 +244,41 @@ namespace EFCore.Extension
             }
         }
 
-        public override PageResult<T> ToPage<T>(PageModel pModel)
+        public override PageResult<T> ToPage<T>(PageModel pModel, DataContext db = null)
         {
             var result = new PageResult<T>();
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                pModel.StarId = (pModel.PageId - 1) * pModel.PageSize + 1;
+                pModel.EndId = pModel.PageId * pModel.PageSize;
+                pModel.TotalRecord = ToCount(db);
+
+                if (pModel.TotalRecord > 0)
                 {
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    pModel.StarId = (pModel.PageId - 1) * pModel.PageSize + 1;
-                    pModel.EndId = pModel.PageId * pModel.PageSize;
-                    pModel.TotalRecord = ToCount();
-
-                    if (pModel.TotalRecord > 0)
-                    {
-                        if ((pModel.TotalRecord % pModel.PageSize) == 0)
-                            pModel.TotalPage = pModel.TotalRecord / pModel.PageSize;
-                        else
-                            pModel.TotalPage = (pModel.TotalRecord / pModel.PageSize) + 1;
-
-                        if (pModel.PageId > pModel.TotalPage)
-                            pModel.PageId = pModel.TotalPage;
-
-                        BaseExecute.SetCommandText(db, pModel, Data.sql);
-                        BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-
-                        using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
-                        {
-                            result.list = BaseDataReader.ToList<T>(dr);
-                            BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result.list);
-                        }
-                    }
+                    if ((pModel.TotalRecord % pModel.PageSize) == 0)
+                        pModel.TotalPage = pModel.TotalRecord / pModel.PageSize;
                     else
-                        result.list = new List<T>();
+                        pModel.TotalPage = (pModel.TotalRecord / pModel.PageSize) + 1;
 
-                    result.pModel = pModel;
+                    if (pModel.PageId > pModel.TotalPage)
+                        pModel.PageId = pModel.TotalPage;
+
+                    BaseExecute.SetCommandText(db, pModel, Data.sql);
+                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+
+                    using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
+                    {
+                        result.list = BaseDataReader.ToList<T>(dr);
+                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result.list);
+                    }
                 }
+                else
+                    result.list = new List<T>();
+
+                result.pModel = pModel;
 
                 return result;
             }
@@ -302,42 +290,41 @@ namespace EFCore.Extension
             }
         }
 
-        public override PageResultDyn ToPageDyn(PageModel pModel)
+        public override PageResultDyn ToPageDyn(PageModel pModel, DataContext db = null)
         {
             var result = new PageResultDyn();
             try
             {
-                using (var db = new DataContext(Data.key))
+                db = db == null ? ServiceContext.Engine.Resolve<IUnitOfWorK>().Contexts(Data.key) : db;
+                db.Dispose(db.cmd);
+                db.cmd.Parameters.AddRange(Data.param.ToArray());
+                pModel.StarId = (pModel.PageId - 1) * pModel.PageSize + 1;
+                pModel.EndId = pModel.PageId * pModel.PageSize;
+                pModel.TotalRecord = ToCount(db);
+
+                if (pModel.TotalRecord > 0)
                 {
-                    db.cmd.Parameters.AddRange(Data.param.ToArray());
-                    pModel.StarId = (pModel.PageId - 1) * pModel.PageSize + 1;
-                    pModel.EndId = pModel.PageId * pModel.PageSize;
-                    pModel.TotalRecord = ToCount();
-
-                    if (pModel.TotalRecord > 0)
-                    {
-                        if ((pModel.TotalRecord % pModel.PageSize) == 0)
-                            pModel.TotalPage = pModel.TotalRecord / pModel.PageSize;
-                        else
-                            pModel.TotalPage = (pModel.TotalRecord / pModel.PageSize) + 1;
-
-                        if (pModel.PageId > pModel.TotalPage)
-                            pModel.PageId = pModel.TotalPage;
-
-                        BaseExecute.SetCommandText(db, pModel, Data.sql);
-                        BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
-
-                        using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
-                        {
-                            result.list = BaseDataReader.ToDyns(dr);
-                            BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result.list);
-                        }
-                    }
+                    if ((pModel.TotalRecord % pModel.PageSize) == 0)
+                        pModel.TotalPage = pModel.TotalRecord / pModel.PageSize;
                     else
-                        result.list = new List<dynamic>();
+                        pModel.TotalPage = (pModel.TotalRecord / pModel.PageSize) + 1;
 
-                    result.pModel = pModel;
+                    if (pModel.PageId > pModel.TotalPage)
+                        pModel.PageId = pModel.TotalPage;
+
+                    BaseExecute.SetCommandText(db, pModel, Data.sql);
+                    BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
+
+                    using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
+                    {
+                        result.list = BaseDataReader.ToDyns(dr);
+                        BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result.list);
+                    }
                 }
+                else
+                    result.list = new List<dynamic>();
+
+                result.pModel = pModel;
 
                 return result;
             }

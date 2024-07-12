@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Reflection;
+using EFCore.Extension.Context;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -74,6 +75,7 @@ namespace Microsoft.Extensions.DependencyInjection
             EFCoreCache.Config.Remove(config.Key);
             EFCoreCache.Config.Add(config.Key, config);
 
+            serviceCollection.AddScoped<IUnitOfWorK, UnitOfWorK>();
             return serviceCollection;
         }
     }
