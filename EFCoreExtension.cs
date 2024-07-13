@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using EFCore.Extension.Context;
+using FastUntility.Core;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -76,6 +77,7 @@ namespace Microsoft.Extensions.DependencyInjection
             EFCoreCache.Config.Add(config.Key, config);
 
             serviceCollection.AddScoped<IUnitOfWorK, UnitOfWorK>();
+            ServiceContext.Init(new ServiceEngine(serviceCollection.BuildServiceProvider()));
             return serviceCollection;
         }
     }
