@@ -10,7 +10,7 @@ namespace EFCore.Extension.Base
     {
         public static List<dynamic> ToDyns(DbDataReader dr)
         {
-            List<dynamic> list = new List<dynamic>();
+            var list = new List<dynamic>();
             var colList = new List<string>();
 
             if (dr == null)
@@ -61,17 +61,16 @@ namespace EFCore.Extension.Base
             while (dr.Read())
             {
                 var item = new T();
-                foreach (var info in propertyList)
+                propertyList.ForEach(info =>
                 {
                     if (!colList.Exists(a => string.Compare(a, info.Name, true) == 0))
-                        continue;
+                        return;
 
                     if (info.PropertyType.IsGenericType && info.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>))
-                        continue;
+                        return;
 
                     item = SetValue<T>(item, dr, info);
-                }
-
+                });
                 list.Add(item);
             }
 
