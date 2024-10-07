@@ -7,6 +7,8 @@ using System.Linq;
 using System.Reflection;
 using EFCore.Extension.Context;
 using FastUntility.Core;
+using FastUntility.Core.Base;
+using NPOI.OpenXmlFormats.Dml;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -18,6 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
     public static class EFCoreExtension
     {
+        private static readonly string Config = "EFConfig";
         public static IServiceCollection AddEfCore(this IServiceCollection serviceCollection, Action<ConfigData> action)
         {
             var config = new ConfigData();
@@ -77,6 +80,79 @@ namespace Microsoft.Extensions.DependencyInjection
             EFCoreCache.Config.Add(config.Key, config);
 
             serviceCollection.AddScoped<IUnitOfWorK, UnitOfWorK>();
+            ServiceContext.Init(new ServiceEngine(serviceCollection.BuildServiceProvider()));
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddEfCoreJosn(this IServiceCollection serviceCollection, Action<ConfigData> action)
+        {
+           var config = new ConfigData();
+            action(config);
+
+            var list = BaseConfig.GetListValue<ConfigData>(Config, config.DbFile);
+            if (list.Count > 0)
+            {
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+                list.ForEach(a => {
+                    a.Aop = config.Aop;
+                    a.Context = config.Context;
+
+                    if (string.IsNullOrEmpty(a.ProviderName))
+                        throw new System.Exception("services.AddEfCore ProviderName not null");
+
+                    if (string.IsNullOrEmpty(a.FactoryClient))
+                        throw new System.Exception("services.AddEfCore FactoryClient not null");
+
+                    if (string.IsNullOrEmpty(a.Key))
+                        throw new System.Exception("services.AddEfCore Key not null");
+
+                    if (a.Context == null)
+                        throw new System.Exception("services.AddEfCore Context not null");
+
+                    if ((int)a.DbType == 0)
+                        throw new System.Exception("services.AddEfCore DbType not null");
+
+                    if (string.IsNullOrEmpty(a.ConnStr))
+                        throw new System.Exception("services.AddEfCore ConnStr not null");
+
+                    var assembly = assemblies.Find(b => b.FullName.Split(',')[0] == a.ProviderName);
+                    if (assembly == null)
+                        throw new System.Exception($"{a.ProviderName} not in Current Domain Assembly");
+
+                    var model = assembly.GetType(a.FactoryClient, false);
+
+                    if (model == null)
+                        throw new System.Exception($"{a.FactoryClient} not in Assembly {assembly.FullName}");
+
+                    var field = model.GetField("Instance");
+                    var instance = field.GetValue(model);
+
+                    DbConnection connection = null;
+                    try
+                    {
+                        connection = (instance as DbProviderFactory).CreateConnection();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new System.Exception($"{a.ConnStr} {ex.Message}");
+                    }
+                    finally
+                    {
+                        connection.Dispose();
+                    }
+
+                    if (a.Aop != null)
+                        serviceCollection.AddSingleton<IEFCoreAop>(a.Aop);
+
+                    EFCoreCache.DbFactory.Remove(a.Key);
+                    EFCoreCache.DbFactory.Add(a.Key, instance as DbProviderFactory);
+
+                    EFCoreCache.Config.Remove(a.Key);
+                    EFCoreCache.Config.Add(a.Key, a);
+                });
+
+                serviceCollection.AddScoped<IUnitOfWorK, UnitOfWorK>();
+            }
             ServiceContext.Init(new ServiceEngine(serviceCollection.BuildServiceProvider()));
             return serviceCollection;
         }
