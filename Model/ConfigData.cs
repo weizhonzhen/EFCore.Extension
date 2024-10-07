@@ -20,5 +20,7 @@ namespace EFCore.Extension.Model
         public DbContext Context { get; set; }
 
         public DbTypeEnum DbType { get; set; }
+
+        public string DbFile { get; set; } = "db.json";
     }
 }
