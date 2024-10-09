@@ -42,6 +42,7 @@ namespace EFCore.Extension.Base
             {
                 list.Add(dr.GetName(i));
             }
+            list.Distinct();
             return list;
         }
 
