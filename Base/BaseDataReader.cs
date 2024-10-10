@@ -1,8 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using FastUntility.Core.Base;
+using FastUntility.Core.BuilderMethod;
+using NPOI.SS.UserModel;
+using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Dynamic;
-using System;
-using FastUntility.Core.Base;
+using System.Reflection;
+using System.Reflection.Emit;
 
 namespace EFCore.Extension.Base
 {
@@ -23,11 +27,11 @@ namespace EFCore.Extension.Base
             {
                 dynamic item = new ExpandoObject();
                 var dic = (IDictionary<string, object>)item;
-
-                foreach (var key in colList)
+                
+                colList.ForEach(a =>
                 {
-                    dic[key] = dr[key];
-                }
+                    dic[a] = dr[a];
+                });
 
                 list.Add(item);
             }
@@ -40,9 +44,10 @@ namespace EFCore.Extension.Base
             var list = new List<string>();
             for (var i = 0; i < dr.FieldCount; i++)
             {
-                list.Add(dr.GetName(i));
+                var colName = dr.GetName(i);
+                if (!list.Exists(a => string.Compare(a, colName, true) == 0))
+                    list.Add(colName);
             }
-            list.Distinct();
             return list;
         }
 
@@ -56,21 +61,22 @@ namespace EFCore.Extension.Base
 
             if (dr.HasRows)
                 colList = GetCol(dr);
-
-            var propertyList = PropertyCache.GetPropertyInfo<T>();
+            
+           var propertyList = PropertyCache.GetPropertyInfo<T>();
 
             while (dr.Read())
             {
                 var item = new T();
-                propertyList.ForEach(info =>
+                colList.ForEach(a =>
                 {
-                    if (!colList.Exists(a => string.Compare(a, info.Name, true) == 0))
+                    if (dr[a] is DBNull)
                         return;
-
-                    if (info.PropertyType.IsGenericType && info.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>))
-                        return;
-
-                    item = SetValue<T>(item, dr, info);
+                    else
+                    {
+                        var info = propertyList.Find(b => string.Compare(b.Name, a, true) == 0);
+                        if (info != null)
+                            item = SetValue<T>(item, dr[a], info);
+                    }
                 });
                 list.Add(item);
             }
@@ -79,14 +85,11 @@ namespace EFCore.Extension.Base
         }
 
 
-        private static T SetValue<T>(T item, DbDataReader dr, PropertyModel info)
+        private static T SetValue<T>(T item, object value, PropertyModel info)
         {
             try
             {
-                var id = dr.GetOrdinal(info.Name);
-                if (!dr.IsDBNull(id))
-                    BaseEmit.Set(item, info.Name, dr.GetValue(id));
-
+                BaseEmit.Set(item, info.Name, value);
                 return item;
             }
             catch { return item; }
