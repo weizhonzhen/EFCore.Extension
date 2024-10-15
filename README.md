@@ -26,12 +26,7 @@ db.json
     }
   ]
 }
-```
 
-
-
-
-```
 builder.Services.AddEfCoreJosn(a => {
     a.Context = builder.Services.BuildServiceProvider().GetService<TestDbContext>();;
 });
