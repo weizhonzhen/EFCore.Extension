@@ -41,3 +41,23 @@ pageModel.PageId = 3;
 var pageTList = dbContext.QuerySql(sql, param, "api").ToPage<JbBusiApplySalaryDetail>(pageModel);
 ```
 
+```
+aop
+public class SqlAop : IEFCoreAop
+{
+    public void After(AfterContext context)
+    {
+        //throw new NotImplementedException();
+    }
+
+    public void Before(BeforeContext context)
+    {
+        //throw new NotImplementedException();
+    }
+
+    public void Exception(ExceptionContext context)
+    {
+        //throw new NotImplementedException();
+    }
+}
+```
