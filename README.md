@@ -38,7 +38,7 @@ var list = dbContext.QuerySql(sql, param, "api").ToList<Model>();
 var dics = dbContext.QuerySql(sql, param, "api").ToDics();
 var pageModel = new PageModel();
 pageModel.PageId = 3;
-var pageTList = dbContext.QuerySql(sql, param, "api").ToPage<JbBusiApplySalaryDetail>(pageModel);
+var pageTList = dbContext.QuerySql(sql, param, "api").ToPage<test>(pageModel);
 ```
 
 ```
