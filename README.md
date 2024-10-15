@@ -1,3 +1,4 @@
+```
 builder.Services.AddEfCoreJosn(a => {
     a.Key = "api";
     a.FactoryClient = "MySql.Data.MySqlClient.MySqlClientFactory";
@@ -7,9 +8,12 @@ builder.Services.AddEfCoreJosn(a => {
     a.DbType = EFCore.Extension.DbTypeEnum.MySql;
     a.Aop = new SqlAop();
 });
+```
+
 
 or 
 
+```
 db.json
 {
   "EFConfig": [
@@ -22,15 +26,23 @@ db.json
     }
   ]
 }
+```
 
 
 
+
+```
 builder.Services.AddEfCoreJosn(a => {
     a.Context = builder.Services.BuildServiceProvider().GetService<TestDbContext>();;
 });
+```
 
+
+```
 var list = dbContext.QuerySql(sql, param, "api").ToList<Model>();
 var dics = dbContext.QuerySql(sql, param, "api").ToDics();
 var pageModel = new PageModel();
 pageModel.PageId = 3;
 var pageTList = dbContext.QuerySql(sql, param, "api").ToPage<JbBusiApplySalaryDetail>(pageModel);
+```
+
