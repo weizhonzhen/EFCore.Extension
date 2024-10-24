@@ -1,12 +1,8 @@
 ﻿using FastUntility.Core.Base;
-using FastUntility.Core.BuilderMethod;
-using NPOI.SS.UserModel;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Dynamic;
-using System.Reflection;
-using System.Reflection.Emit;
 
 namespace EFCore.Extension.Base
 {
@@ -67,6 +63,7 @@ namespace EFCore.Extension.Base
             while (dr.Read())
             {
                 var item = new T();
+                var dic = new Dictionary<string, object>();
                 colList.ForEach(a =>
                 {
                     if (dr[a] is DBNull)
@@ -75,24 +72,17 @@ namespace EFCore.Extension.Base
                     {
                         var info = propertyList.Find(b => string.Compare(b.Name, a, true) == 0);
                         if (info != null)
-                            item = SetValue<T>(item, dr[a], info);
+                        {
+                            dic.Add(info.Name, dr[a]);
+                        }
                     }
                 });
+
+                BaseEmit.Set<T>(item, dic);
                 list.Add(item);
             }
 
             return list;
-        }
-
-
-        private static T SetValue<T>(T item, object value, PropertyModel info)
-        {
-            try
-            {
-                BaseEmit.Set(item, info.Name, value);
-                return item;
-            }
-            catch { return item; }
         }
     }
 }
