@@ -1,4 +1,4 @@
-namespace EFCore.Extension.Page
+﻿namespace EFCore.Extension.Page
 {
     public class PageModel
     {
