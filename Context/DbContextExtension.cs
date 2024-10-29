@@ -1,4 +1,4 @@
-﻿using FastUntility.Core.Base;
+﻿using EFCore.Extension.Base;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Concurrent;

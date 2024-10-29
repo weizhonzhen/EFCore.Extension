@@ -1,6 +1,6 @@
-﻿using EFCore.Extension.Base;
+﻿using EFCore.Extension.Aop;
+using EFCore.Extension.Base;
 using EFCore.Extension.Model;
-using FastUntility.Core.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -54,7 +54,9 @@ namespace EFCore.Extension.Context
             catch (Exception ex)
             {
                 BaseAop.AopException(key, string.Empty, null, ex);
-                throw new Exception(ex.Message);
+
+                if (ServiceContext.Engine.Resolve<IEFCoreAop>() == null)
+                    throw new Exception(ex.Message);
             }
         }
 
