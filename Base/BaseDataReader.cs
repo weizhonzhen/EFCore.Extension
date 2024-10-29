@@ -1,5 +1,4 @@
-﻿using FastUntility.Core.Base;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Dynamic;
@@ -8,7 +7,7 @@ namespace EFCore.Extension.Base
 {
     internal class BaseDataReader
     {
-        public static List<dynamic> ToDyns(DbDataReader dr)
+        internal static List<dynamic> ToDyns(DbDataReader dr)
         {
             var list = new List<dynamic>();
             var colList = new List<string>();
@@ -47,7 +46,7 @@ namespace EFCore.Extension.Base
             return list;
         }
 
-        public static List<T> ToList<T>(DbDataReader dr) where T : class, new()
+        internal static List<T> ToList<T>(DbDataReader dr) where T : class, new()
         {
             var list = new List<T>();
             var colList = new List<string>();
@@ -72,9 +71,7 @@ namespace EFCore.Extension.Base
                     {
                         var info = propertyList.Find(b => string.Compare(b.Name, a, true) == 0);
                         if (info != null)
-                        {
                             dic.Add(info.Name, dr[a]);
-                        }
                     }
                 });
 

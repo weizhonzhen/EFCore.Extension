@@ -9,7 +9,7 @@ namespace EFCore.Extension.Base
     {
         internal static readonly ConcurrentDictionary<string, List<PropertyModel>> PropertyInfo = new ConcurrentDictionary<string, List<PropertyModel>>();
 
-        public static List<PropertyModel> GetPropertyInfo<T>()
+        internal static List<PropertyModel> GetPropertyInfo<T>()
         {
             var list = new List<PropertyModel>();
             var key = string.Format("{0}.{1}", typeof(T).Namespace, typeof(T).Name);

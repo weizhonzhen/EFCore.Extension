@@ -1,6 +1,5 @@
 ﻿using EFCore.Extension.Aop;
 using EFCore.Extension.Context;
-using FastUntility.Core;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
@@ -9,7 +8,7 @@ namespace EFCore.Extension.Base
 {
     internal static class BaseAop
     {
-        public static void AopBefore(DataContext db, string sql, List<DbParameter> param)
+        internal static void AopBefore(DataContext db, string sql, List<DbParameter> param)
         {
             var aop = ServiceContext.Engine.Resolve<IEFCoreAop>();
             if (aop != null)
@@ -27,7 +26,7 @@ namespace EFCore.Extension.Base
             }
         }
 
-        public static void AopAfter(DataContext db, string sql, List<DbParameter> param,object result)
+        internal static void AopAfter(DataContext db, string sql, List<DbParameter> param,object result)
         {
             var aop = ServiceContext.Engine.Resolve<IEFCoreAop>();
             if (aop != null)
@@ -47,7 +46,7 @@ namespace EFCore.Extension.Base
             }
         }
 
-        public static void AopException(string key, string sql, List<DbParameter> param, Exception ex)
+        internal static void AopException(string key, string sql, List<DbParameter> param, Exception ex)
         {
             var aop = ServiceContext.Engine.Resolve<IEFCoreAop>();
             if (aop != null)
