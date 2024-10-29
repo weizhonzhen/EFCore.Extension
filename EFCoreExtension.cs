@@ -1,14 +1,11 @@
 ﻿using EFCore.Extension.Aop;
+using EFCore.Extension.Base;
+using EFCore.Extension.Context;
 using EFCore.Extension.Model;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
-using System.Reflection;
-using EFCore.Extension.Context;
-using FastUntility.Core;
-using FastUntility.Core.Base;
-using NPOI.OpenXmlFormats.Dml;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

@@ -2,9 +2,7 @@
 using EFCore.Extension.Base;
 using EFCore.Extension.Context;
 using EFCore.Extension.Model;
-using FastUntility.Core;
-using FastUntility.Core.Base;
-using FastUntility.Core.Page;
+using EFCore.Extension.Page;
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
@@ -353,7 +351,6 @@ namespace EFCore.Extension
                 context.ex = ex;
                 aop.Exception(context);
             }
-            BaseLog.SaveLog(ex.ToString(), method);
         }
     }
 }
