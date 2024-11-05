@@ -61,14 +61,8 @@ namespace EFCore.Extension.Base
         {
             try
             {
-                var type = typeof(T); 
-                var dynKey = $"SetEmit_{type}_{type.Module}";
-                var dynamicMethod = GetDyn(dynKey);
-                if (dynamicMethod == null)
-                {
-                    dynamicMethod = new DynamicMethod("SetEmit", null, new[] { type, typeof(object) }, type.Module);
-                    SetDyn(dynKey, dynamicMethod);
-                }
+                var type = typeof(T);               
+                var dynamicMethod = new DynamicMethod("SetEmit", null, new[] { type, typeof(Dictionary<string, object>) }, type.Module);                 
                 var iL = dynamicMethod.GetILGenerator();
 
                 foreach (var item in dic)
@@ -93,7 +87,7 @@ namespace EFCore.Extension.Base
                 }
 
                 iL.Emit(OpCodes.Ret);
-                var dyn = dynamicMethod.CreateDelegate(typeof(Action<T, object>)) as Action<T, object>;
+                var dyn = dynamicMethod.CreateDelegate(typeof(Action<T, Dictionary<string, object>>)) as Action<T, Dictionary<string, object>>;
                 dyn(model, dic);
             }
             catch (Exception ex) { }
