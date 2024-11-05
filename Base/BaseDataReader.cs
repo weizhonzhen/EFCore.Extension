@@ -58,7 +58,7 @@ namespace EFCore.Extension.Base
                 colList = GetCol(dr);
 
             var propertyList = PropertyCache.GetPropertyInfo<T>();
-            //var dics = new List<Dictionary<string, object>>();
+            var dics = new List<Dictionary<string, object>>();
 
             while (dr.Read())
             {
@@ -75,14 +75,14 @@ namespace EFCore.Extension.Base
                             dic.Add(info.Name, dr[a]);
                     }
                 });
+                                
+                //BaseEmit.Set<T>(item, dic);
+                //list.Add(item);
 
-                BaseEmit.Set<T>(item, dic);
-                list.Add(item);
-
-                //dics.Add(dic);
+               dics.Add(dic);
             }
 
-            //BaseEmit.Set(list, dics);
+            BaseEmit.Set(list, dics);
 
             return list;
         }
