@@ -1,11 +1,11 @@
 ```
 builder.Services.AddEfCoreJosn(a => {
-    a.Key = "api";
-    a.FactoryClient = "MySql.Data.MySqlClient.MySqlClientFactory";
-    a.ConnStr = "Server=127.0.0.1;Port=8080;User Id=test;Password=test;Database=test;Character Set=utf8mb4;";
-    a.ProviderName = "MySql.Data";
+    //a.Key = "api";
+    //a.FactoryClient = "MySql.Data.MySqlClient.MySqlClientFactory";
+    //a.ConnStr = "Server=127.0.0.1;Port=8080;User Id=test;Password=test;Database=test;Character Set=utf8mb4;";
+    //a.ProviderName = "MySql.Data";
     a.Context = builder.Services.BuildServiceProvider().GetService<TestDbContext>();
-    a.DbType = EFCore.Extension.DbTypeEnum.MySql;
+    //a.DbType = EFCore.Extension.DbTypeEnum.MySql;
     a.Aop = new SqlAop();
 });
 ```
