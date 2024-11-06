@@ -156,7 +156,7 @@ namespace EFCore.Extension
                 BaseAop.AopBefore(db, db.cmd.CommandText, Data.param);
                 using (var dr = BaseExecute.ToDataReader(db.cmd, db.cmd.CommandText))
                 {
-                    var result = BaseDataReader.ToList<T>(dr).FirstOrDefault() ?? new T();
+                    var result = BaseDataReader.ToItem<T>(dr) ?? new T();
                     BaseAop.AopAfter(db, db.cmd.CommandText, Data.param, result);
                     return result;
                 }
