@@ -86,5 +86,39 @@ namespace EFCore.Extension.Base
 
             return list;
         }
+
+        internal static T ToItem<T>(DbDataReader dr) where T : class, new()
+        {
+            var model = new T();
+            var colList = new List<string>();
+
+            if (dr == null)
+                return model;
+
+            if (dr.HasRows)
+                colList = GetCol(dr);
+
+            var propertyList = PropertyCache.GetPropertyInfo<T>();
+
+            while (dr.Read())
+            {
+                var dic = new Dictionary<string, object>();
+                colList.ForEach(a =>
+                {
+                    if (dr[a] is DBNull)
+                        return;
+                    else
+                    {
+                        var info = propertyList.Find(b => string.Compare(b.Name, a, true) == 0);
+                        if (info != null)
+                            dic.Add(info.Name, dr[a]);
+                    }
+                });
+
+                BaseEmit.Set<T>(model, dic);
+            }
+
+            return model;
+        }
     }
 }
