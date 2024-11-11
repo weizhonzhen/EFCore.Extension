@@ -71,15 +71,18 @@ namespace EFCore.Extension.Base
                     else
                     {
                         var info = propertyList.Find(b => string.Compare(b.Name, a, true) == 0);
-                        if (info != null)
-                            dic.Add(info.Name, dr[a]);
+
+                        if (info == null)
+                            return;
+
+                        if (info.PropertyType.IsGenericType && info.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>))
+                            return;
+
+                        dic.Add(info.Name, dr[a]);
                     }
                 });
-                                
-                //BaseEmit.Set<T>(item, dic);
-                //list.Add(item);
 
-               dics.Add(dic);
+                dics.Add(dic);
             }
 
             BaseEmit.Set(list, dics);
@@ -110,8 +113,13 @@ namespace EFCore.Extension.Base
                     else
                     {
                         var info = propertyList.Find(b => string.Compare(b.Name, a, true) == 0);
-                        if (info != null)
-                            dic.Add(info.Name, dr[a]);
+                        if (info == null)
+                            return;
+
+                        if (info.PropertyType.IsGenericType && info.PropertyType.GetGenericTypeDefinition() != typeof(Nullable<>))
+                            return;
+
+                        dic.Add(info.Name, dr[a]);
                     }
                 });
 
