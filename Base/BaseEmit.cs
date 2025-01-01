@@ -267,13 +267,7 @@ namespace EFCore.Extension.Base
 
             var type = model.GetType();
 
-            var dynKey = $"GetEmit_{type}_{type.Module}";
-            var dynamicMethod = GetDyn(dynKey);
-            if (dynamicMethod == null)
-            {
-                dynamicMethod = new DynamicMethod("GetEmit", typeof(object), new[] { typeof(object) }, type, true);
-                SetDyn(dynKey, dynamicMethod);
-            }
+            var dynamicMethod =  new DynamicMethod("GetEmit", typeof(object), new[] { typeof(object) }, type, true);
 
             var key = $"get_{name}_{type.FullName}";
             var method = GetMethod(key);
@@ -314,13 +308,7 @@ namespace EFCore.Extension.Base
                 return null;
             try
             {
-                var dynKey = $"InvokeEmit_{typeof(EmitInvoke).Module}";
-                var dynamicMethod = GetDyn(dynKey);
-                if (dynamicMethod == null)
-                {
-                    dynamicMethod = new DynamicMethod("InvokeEmit", typeof(object), new Type[] { typeof(object), typeof(object[]) }, typeof(EmitInvoke).Module);
-                    SetDyn(dynKey, dynamicMethod);
-                }
+                var dynamicMethod =  new DynamicMethod("InvokeEmit", typeof(object), new Type[] { typeof(object), typeof(object[]) }, typeof(EmitInvoke).Module);
 
                 var iL = dynamicMethod.GetILGenerator();
                 var info = methodInfo.GetParameters();
