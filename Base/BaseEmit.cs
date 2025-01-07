@@ -180,12 +180,16 @@ namespace EFCore.Extension.Base
                             else if (info.OpCodeParam == OpCodes.Ldc_I8 && (info.type == typeof(TimeSpan) || info.GenericType == typeof(TimeSpan)))
                                 iL.Emit(info.OpCodeParam.Value, item.Value.ToStr().ToDate().Value.Ticks);
 
-                            if (!info.IsGenericType && info.OpCodeNewobj != null)
-                                iL.Emit(info.OpCodeNewobj.Value, info.type.GetConstructor(new Type[] { info.GenericType }));
-                            if (info.IsGenericType && info.GenericOpCodeNewobj != null && info.IsDateTime)
-                                iL.Emit(info.OpCodeNewobj.Value, info.GenericType.GetConstructor(new Type[] { typeof(long) }));
-                            if (info.IsGenericType && info.GenericOpCodeNewobj != null)
-                                iL.Emit(info.GenericOpCodeNewobj.Value, info.type.GetConstructor(new Type[] { info.GenericType }));
+                            if (info.GenericType != null)
+                            {
+                                var constructorstu = info.type.GetConstructor(new Type[] { info.GenericType });
+                                if (!info.IsGenericType && info.OpCodeNewobj != null && constructorstu != null)
+                                    iL.Emit(info.OpCodeNewobj.Value, info.type.GetConstructor(new Type[] { info.GenericType }));
+                                if (info.IsGenericType && info.GenericOpCodeNewobj != null && info.IsDateTime)
+                                    iL.Emit(info.OpCodeNewobj.Value, info.GenericType.GetConstructor(new Type[] { typeof(long) }));
+                                if (info.IsGenericType && info.GenericOpCodeNewobj != null && constructorstu != null)
+                                    iL.Emit(info.GenericOpCodeNewobj.Value, constructorstu);
+                            }
                         }
                         iL.EmitCall(OpCodes.Callvirt, method, null);
                     }
@@ -250,12 +254,16 @@ namespace EFCore.Extension.Base
                 else if (info.OpCodeParam == OpCodes.Ldc_I8 && (info.type == typeof(TimeSpan) || info.GenericType == typeof(TimeSpan)))
                     iL.Emit(info.OpCodeParam.Value, item.Value.ToStr().ToDate().Value.Ticks);
 
-                if (!info.IsGenericType && info.OpCodeNewobj != null)
-                    iL.Emit(info.OpCodeNewobj.Value, info.type.GetConstructor(new Type[] { info.GenericType }));
-                if (info.IsGenericType && info.GenericOpCodeNewobj != null && info.IsDateTime)
-                    iL.Emit(info.OpCodeNewobj.Value, info.GenericType.GetConstructor(new Type[] { typeof(long)}));
-                if (info.IsGenericType && info.GenericOpCodeNewobj != null)
-                    iL.Emit(info.GenericOpCodeNewobj.Value, info.type.GetConstructor(new Type[] { info.GenericType }));
+                if (info.GenericType != null)
+                {
+                    var constructorstu = info.type.GetConstructor(new Type[] { info.GenericType });
+                    if (!info.IsGenericType && info.OpCodeNewobj != null && constructorstu != null)
+                        iL.Emit(info.OpCodeNewobj.Value, constructorstu);
+                    if (info.IsGenericType && info.GenericOpCodeNewobj != null && info.IsDateTime)
+                        iL.Emit(info.OpCodeNewobj.Value, info.GenericType.GetConstructor(new Type[] { typeof(long) }));
+                    if (info.IsGenericType && info.GenericOpCodeNewobj != null && constructorstu != null)
+                        iL.Emit(info.GenericOpCodeNewobj.Value, constructorstu);
+                }
             }
             ExecIL(iL, local, method);
         }
